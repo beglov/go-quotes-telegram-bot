@@ -1,0 +1,30 @@
+graph TD
+    subgraph Runtime
+        A["cmd/bot/main.go"]
+        B["bot.Service"]
+        C["scheduler.Daily"]
+        D["quotes.Client"]
+        E["subscribers.Store"]
+    end
+
+    subgraph External Systems
+        TG["Telegram Bot API"]
+        F["Forismatic API"]
+        G["data/subscribers.json"]
+        ENV["Env vars: TELEGRAM_BOT_TOKEN, DAILY_TIME, SUBSCRIBERS_FILE"]
+    end
+
+    A -->|инициализация зависимостей| B
+    A -->|чтение конфигурации| ENV
+
+    B -->|старт цикла обновлений| TG
+    TG -->|обновления/команды| B
+
+    B -->|подписка/отписка| E
+    E -->|персистенция| G
+
+    B -->|запрос цитаты| D
+    D -->|HTTP| F
+
+    B -->|регистрация ежедневной задачи| C
+    C -->|ежедневный вызов| B

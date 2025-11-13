@@ -1,0 +1,14 @@
+sequenceDiagram
+    participant User as Пользователь
+    participant Telegram as Telegram Bot API
+    participant Service as internal/bot.Service
+    participant Quotes as internal/quotes.Client
+    participant TgSend as Telegram Bot API
+
+    User->>Telegram: /quote
+    Telegram->>Service: Update с командой /quote
+    Service->>Quotes: GetQuote(ctx)
+    Quotes->>Quotes: HTTP запрос к Forismatic
+    Quotes-->>Service: Quote (текст, автор)
+    Service->>TgSend: Send(Message)
+    TgSend-->>User: Сообщение с цитатой

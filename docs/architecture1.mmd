@@ -1,0 +1,33 @@
+flowchart LR
+    subgraph Telegram
+        U[Пользователь]
+        TGAPI[Telegram Bot API]
+    end
+
+subgraph Application[Go Quotes Telegram Bot]
+CMD[cmd/bot/main]
+BOT[internal/bot\nService]
+QUOTES[internal/quotes\nForismatic Client]
+SUBS[internal/subscribers\nJSON Store]
+SCHED[internal/scheduler\nDaily Scheduler]
+end
+
+subgraph External
+FORISMATIC[Forismatic API]
+FILE[JSON файл\ndata/subscribers.json]
+end
+
+U -->|команды /start /stop /quote| TGAPI
+TGAPI -->|обновления| BOT
+CMD -->|инициализирует| BOT
+CMD -->|создаёт| QUOTES
+CMD -->|создаёт| SUBS
+CMD -->|создаёт| SCHED
+BOT -->|ежедневная рассылка| SCHED
+SCHED -->|callback| BOT
+BOT -->|подписки| SUBS
+BOT -->|цитаты| QUOTES
+QUOTES -->|HTTP запросы| FORISMATIC
+SUBS -->|чтение/запись| FILE
+BOT -->|сообщения| TGAPI
+TGAPI -->|доставка| U

@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant Scheduler as internal/scheduler.Daily
+    participant Service as internal/bot.Service
+    participant Subscribers as internal/subscribers.Store
+    participant Quotes as internal/quotes.Client
+    participant Telegram as Telegram Bot API
+    participant Users as Подписчики
+
+    Scheduler->>Scheduler: ожидание наступления заданного времени
+    Scheduler->>Service: callback sendDailyQuotes(ctx)
+
+    Service->>Subscribers: List(ctx)
+    Subscribers-->>Service: [chatID₁, chatID₂, …]
+
+    Service->>Quotes: GetQuote(ctx)
+    Quotes->>Quotes: HTTP-запрос к Forismatic (повторы при ошибке)
+    Quotes-->>Service: Quote (текст, автор)
+
+    loop по подписчикам
+        Service->>Telegram: Send(Message для chatIDₙ)
+        Telegram-->>Users: Сообщение с цитатой
+        Telegram-->>Service: Результат отправки (успех/ошибка)
+        alt ошибка отправки
+            Service->>Service: Логирование ошибки
+        end
+    end
