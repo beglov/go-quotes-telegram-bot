@@ -1,0 +1,5 @@
+---
+- name: Restart go-quotes-bot
+  ansible.builtin.systemd:
+    name: "{{ bot_service_name }}"
+    state: restarted

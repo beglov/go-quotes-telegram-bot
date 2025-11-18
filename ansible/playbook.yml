@@ -1,0 +1,27 @@
+---
+- name: Deploy Go Quotes Bot
+  hosts: go_quotes
+  become: true
+  vars:
+    project_root: "{{ playbook_dir | dirname }}"
+    local_build_dir: "{{ project_root }}/build"
+    bot_binary_local_path: "{{ local_build_dir }}/go-quotes-bot"
+  pre_tasks:
+    - name: Ensure local build directory exists
+      become: false
+      ansible.builtin.file:
+        path: "{{ local_build_dir }}"
+        state: directory
+      delegate_to: localhost
+      run_once: true
+
+    - name: Build Go binary locally
+      become: false
+      ansible.builtin.command:
+        cmd: go build -o {{ bot_binary_local_path }} ./cmd/bot
+        chdir: "{{ project_root }}"
+      delegate_to: localhost
+      run_once: true
+
+  roles:
+    - bot

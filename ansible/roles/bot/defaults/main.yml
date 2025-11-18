@@ -1,0 +1,15 @@
+---
+bot_system_user: goquotes
+bot_system_group: goquotes
+bot_root_dir: /opt/go-quotes-bot
+bot_config_dir: /etc/go-quotes-bot
+bot_service_name: go-quotes-bot
+bot_binary_remote_path: "{{ bot_root_dir }}/bin/go-quotes-bot"
+bot_env_file: "{{ bot_config_dir }}/bot.env"
+bot_binary_mode: "0755"
+bot_env_vars:
+  TELEGRAM_BOT_TOKEN: "{{ telegram_bot_token }}"
+  DAILY_TIME: "{{ daily_time }}"
+  SUBSCRIBERS_FILE: "{{ bot_root_dir }}/data/subscribers.json"
+telegram_bot_token: ""
+daily_time: "08:00"

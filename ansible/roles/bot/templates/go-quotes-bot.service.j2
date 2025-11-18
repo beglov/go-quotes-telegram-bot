@@ -1,0 +1,19 @@
+[Unit]
+Description=Go Quotes Telegram Bot
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User={{ bot_system_user }}
+Group={{ bot_system_group }}
+EnvironmentFile={{ bot_env_file }}
+ExecStart={{ bot_binary_remote_path }}
+WorkingDirectory={{ bot_root_dir }}
+Restart=on-failure
+RestartSec=5s
+AmbientCapabilities=
+CapabilityBoundingSet=
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

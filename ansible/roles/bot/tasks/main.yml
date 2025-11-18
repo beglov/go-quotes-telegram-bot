@@ -1,0 +1,73 @@
+---
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - bot_binary_local_path is defined
+      - bot_binary_local_path | length > 0
+      - telegram_bot_token | length > 0
+    fail_msg: "bot_binary_local_path and telegram_bot_token must be provided"
+
+- name: Ensure bot group exists
+  ansible.builtin.group:
+    name: "{{ bot_system_group }}"
+    system: true
+
+- name: Ensure bot user exists
+  ansible.builtin.user:
+    name: "{{ bot_system_user }}"
+    group: "{{ bot_system_group }}"
+    home: "{{ bot_root_dir }}"
+    shell: /usr/sbin/nologin
+    system: true
+    create_home: false
+
+- name: Create bot directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ bot_system_user }}"
+    group: "{{ bot_system_group }}"
+    mode: "0755"
+  loop:
+    - "{{ bot_root_dir }}"
+    - "{{ bot_root_dir }}/bin"
+    - "{{ bot_root_dir }}/data"
+    - "{{ bot_config_dir }}"
+    - "{{ bot_root_dir }}/log"
+
+- name: Copy bot binary
+  ansible.builtin.copy:
+    src: "{{ bot_binary_local_path }}"
+    dest: "{{ bot_binary_remote_path }}"
+    owner: "{{ bot_system_user }}"
+    group: "{{ bot_system_group }}"
+    mode: "{{ bot_binary_mode }}"
+  notify: Restart go-quotes-bot
+
+- name: Write environment file
+  ansible.builtin.template:
+    src: bot.env.j2
+    dest: "{{ bot_env_file }}"
+    owner: "{{ bot_system_user }}"
+    group: "{{ bot_system_group }}"
+    mode: "0600"
+  notify: Restart go-quotes-bot
+
+- name: Install systemd unit
+  ansible.builtin.template:
+    src: go-quotes-bot.service.j2
+    dest: "/etc/systemd/system/{{ bot_service_name }}.service"
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart go-quotes-bot
+
+- name: Reload systemd
+  ansible.builtin.systemd:
+    daemon_reload: true
+
+- name: Ensure bot service is enabled and running
+  ansible.builtin.systemd:
+    name: "{{ bot_service_name }}"
+    enabled: true
+    state: started
